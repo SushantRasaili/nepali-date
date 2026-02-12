@@ -3,6 +3,59 @@ import format from './format';
 
 const SUM_IDX = 14;
 
+function getGmtDateTimeInfo(timeZone, date = new Date()) {
+  const dateString = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    dateStyle: 'short',
+    timeStyle: 'full',
+  }).format(date);
+
+  return {
+    month: dateString.split(',')[0].split('/')[0].trim(),
+    day: dateString.split(',')[0].split('/')[1].trim(),
+    year: dateString.split(',')[0].split('/')[2].trim(),
+    hour: dateString.split(',')[1].split(':')[0].trim(),
+    minute: dateString.split(',')[1].split(':')[1].trim(),
+  };
+}
+
+function getFormattedDate(info) {
+  const { year, month, day } = info;
+
+  const adjustedYear = `20${year}`;
+
+  const dateString = `${adjustedYear}-${month.padStart(2, '0')}-${day.padStart(
+    2,
+    '0'
+  )}T00:00:00.000Z`;
+
+  const newDate = new Date(dateString);
+
+  return newDate;
+}
+
+function getNepalDateTimeInfo(date) {
+  return getGmtDateTimeInfo('Asia/Kathmandu', date);
+}
+
+function getDateInYYYYMMDD(date) {
+  return getFormattedDate(getNepalDateTimeInfo(date));
+}
+
+function getYYYYMMDDDateStr(incomingDate) {
+  const date = getDateInYYYYMMDD(incomingDate);
+
+  const year = date.getFullYear();
+
+  const month = date.getUTCMonth() + 1;
+  const monthStr = month < 10 ? `0${month}` : month;
+
+  const day = date.getUTCDate();
+  const dayStr = day < 10 ? `0${day}` : day;
+
+  return `${year}-${monthStr}-${dayStr}`;
+}
+
 function parse(dateString) {
   // Expected date formats are yyyy-mm-dd, yyyy.mm.dd yyyy/mm/dd
   const parts = dateString.split(/[-./]/, 3);
@@ -25,7 +78,9 @@ function parse(dateString) {
 
   const daysInMonth = NEPALI_DATE_MAP[year - START_YEAR][month];
   if (day < 1 || day > daysInMonth) {
-    throw new Error(`Invalid nepali date must be between 1 - ${daysInMonth} in ${year} ${month}`);
+    throw new Error(
+      `Invalid nepali date must be between 1 - ${daysInMonth} in ${year} ${month}`
+    );
   }
 
   return [year, month - 1, day];
@@ -147,8 +202,55 @@ class NepaliDate {
     this.set(this.year, this.month, day);
   }
 
+  getNepaliMonthEnglishDateMap() {
+    const curNepaliYear = this.getYear();
+
+    let currentYearMonthDates = NEPALI_DATE_MAP[0][0];
+    for (let i = 0; i < NEPALI_DATE_MAP.length; i += 1) {
+      const yearMonth = NEPALI_DATE_MAP[i];
+
+      if (yearMonth[0] === curNepaliYear) {
+        currentYearMonthDates = yearMonth.slice(1, 13);
+        break;
+      }
+    }
+
+    const englishStartEndDate = [];
+    for (let i = 0; i < currentYearMonthDates.length; i += 1) {
+      const startEndDate = [];
+
+      this.set(curNepaliYear, i, 1);
+
+      startEndDate.push(getYYYYMMDDDateStr(this.getEnglishDate()));
+
+      this.set(curNepaliYear, i, currentYearMonthDates[i]);
+
+      startEndDate.push(getYYYYMMDDDateStr(this.getEnglishDate()));
+
+      englishStartEndDate.push(startEndDate);
+    }
+
+    return englishStartEndDate;
+  }
+
+  getEnglishDateRangeOfNepaliMonth() {
+    const nepaliMonthIdx = this.getMonth();
+    const englishDateRanges = this.getNepaliMonthEnglishDateMap();
+
+    return englishDateRanges[nepaliMonthIdx];
+  }
+
+  getEnglishDateRangeOfNepaliYear() {
+    const englishDateRanges = this.getNepaliMonthEnglishDateMap();
+
+    return [
+      englishDateRanges[0][0],
+      englishDateRanges[englishDateRanges.length - 1][1],
+    ];
+  }
+
   set(year, month, date) {
-    const idx = (year + Math.floor(month / 12)) - START_YEAR;
+    const idx = year + Math.floor(month / 12) - START_YEAR;
     const tmp = NEPALI_DATE_MAP[idx];
     let d = tmp[SUM_IDX] - tmp[SUM_IDX - 1];
 
@@ -166,14 +268,15 @@ class NepaliDate {
     return format(this, formatStr);
   }
 
-
   toString() {
     return `${this.year}/${this.month + 1}/${this.day}`;
   }
 }
 
 NepaliDate.minimum = () => new Date(EPOCH);
-NepaliDate.maximum = () => new Date(EPOCH
-  + ((NEPALI_DATE_MAP[NEPALI_DATE_MAP.length - 1][SUM_IDX]) * 86400000));
+NepaliDate.maximum = () =>
+  new Date(
+    EPOCH + NEPALI_DATE_MAP[NEPALI_DATE_MAP.length - 1][SUM_IDX] * 86400000
+  );
 
 export default NepaliDate;

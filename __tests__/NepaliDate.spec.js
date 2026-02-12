@@ -61,4 +61,18 @@ describe('NepaliDate', () => {
   //   expect(d.getSeconds()).toBe(d.getSeconds());
   //   expect(d.getMilliseconds()).toBe(d.getMilliseconds());
   // });
+
+  it('checks english date range of nepali month and year', () => {
+    // const d = new Date('2026-02-12');
+    const n = new NepaliDate(2082, 9, 1);
+    expect(n.getEnglishDateRangeOfNepaliMonth()).toEqual([
+      '2026-01-15',
+      '2026-02-12',
+    ]);
+
+    expect(n.getEnglishDateRangeOfNepaliYear()).toEqual([
+      '2025-04-14',
+      '2026-04-13',
+    ]);
+  });
 });

@@ -1,16 +1,30 @@
 {
-  "name": "nepali-date",
-  "version": "0.1.3",
+  "name": "nepali-date-2.0",
+  "version": "0.3.0",
   "description": "A Nepali date library for extracting dates based on Bikram Sambat (B. S.) and perform converstions with Gregorian calendar (A. D.)",
   "main": "cjs/index.js",
   "files": [
     "cjs"
   ],
+  "contributors": [
+    {
+      "name": "RakeshStha",
+      "url": "https://github.com/RakeshStha"
+    },
+    {
+      "name": "sharingapples",
+      "url": "https://github.com/sharingapples"
+    },
+    {
+      "name": "SushantRasaili",
+      "url": "https://github.com/SushantRasaili"
+    }
+  ],
   "scripts": {
     "test": "jest",
     "lint": "eslint src",
     "clean": "rimraf cjs",
-    "build": "babel src -d cjs",
+    "build": "babel src -d cjs && copy src\\index.d.ts cjs\\index.d.ts",
     "prepare": "npm run lint && npm run clean && npm run build"
   },
   "bin": {
@@ -18,10 +32,11 @@
     "bs2ad": "./cjs/scripts/bs2ad.js"
   },
   "repository": {
-    "url": "https://github.com/sharingapples/nepali-date.git",
+    "url": "https://github.com/SushantRasaili/nepali-date",
     "type": "git"
   },
-  "author": "Ranjan Shrestha",
+  "types": "cjs/index.d.ts",
+  "author": "Sushant Rasaili",
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.26.0",
